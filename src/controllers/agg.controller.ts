@@ -20,7 +20,7 @@ export class AggController {
     async getWineDetails(url: string) {
         const browser = await puppeteer.launch({headless: false});
         
-        await this.aggService.onSearch(browser, 'frias');
+        await this.aggService.onSearch(browser, 'honig');
         
         return null;
     }

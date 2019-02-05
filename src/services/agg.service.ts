@@ -4,6 +4,7 @@ import * as puppeteer from 'puppeteer';
 
 const SEARCH_SELECTOR = '.searchBarForm_input';
 const TYPEAHEAD_SELECTOR = '.searchTypeAheadList_itemLink';
+const LISTITEM_SELECTOR = ''
 
 @Injectable()
 export class AggService {
@@ -20,7 +21,7 @@ export class AggService {
         const page = await browser.newPage();
         await page.goto(this.wineDotComUrl);
 
-        // await page.select('.state_select', 'CA')
+        let data = [];
             
         // page.waitFor(10000);
 
@@ -32,36 +33,50 @@ export class AggService {
         
         await page.goto(href);
 
-        await page.select('.state_select', 'CA')
+        // await page.select('.state_select', 'CA');
 
-        let result = await page.$eval('.prodList > li', (els) => els);
-        //     let data = [];
-        //     // let items = document.querySelectorAll('.prodItem');
+        // let result = await page.evaluate('.prodList > li', (els) => els);
+        let results = await page.evaluate(() => {
+            let items = [...document.querySelectorAll('ul.prodList > li')];
             
-        //     // els.forEach((item, index) => {
-        //     //     let image = document.querySelector('img');
-        //     //     let title = document.querySelector('prodItemInfo_name');
-        //     //     let varietal = document.querySelector('prodItemInfo_varietal');
-        //     //     let origin = document.querySelector('prodItemInfo_originText');
+            return items;
+        });
 
-        //     //     data.push({
-        //     //         image,
-        //     //         title,
-        //     //         varietal,
-        //     //         origin
-        //     //     });
-        //     // });
-        //     console.info('returning data... ', els);
-            
-        //     return data;
-        // });
+        let link = await page.$eval('ul.prodList > li:nth-child(2) > .prodItem_wrap > .prodItemImage > a', link => link.href);
+        await page.goto(link);
 
+        await page.select('.state_select', 'CA');
 
-        // await page.evaluate((selector) => {
+        // get label
+        let image = await page.$eval('picture > img', img => img.src);
 
-        //     console.log('what is selector', selector)
-        // });
-        console.log('what the fack is result', result)
+        console.log('*** image', image)
+
+        // get winemaker notes
+        let winemakerNotes = await page.$eval('.pipWineNotes_copy > div.viewMoreModule_text', notes => notes.innerText);
+    
+        console.log('**** notes', winemakerNotes)
+
+        // get critical acclaim
+        let acclaim = await page.$eval('.pipProfessionalReviews_review > div.pipSecContent_copy', acc => acc.innerText);
+
+        console.log('***** acclaim', acclaim);
+
+        // get winery but only the first tiem
+        let winery = await page.$eval('div.pipWinery_copy > div.viewMoreModule_text', vintner => vintner.innerText);
+
+        console.log('****** vintner', winery);
+
+        // get region
+        let region = await page.$eval('.productPageContent > section > div.productPageContent_bodyTextMain', reg => reg.innerHTML);
+
+        console.log('******* region', region)
+
+        // TODO: still need to grab varietal/tasting shit
+        // let variety = await page.$eval('.productPageContent > section > div.productPageContent_bodyTextMain', variety => variety.innerHTML);
+
+        // console.log('******** varietal', variety)
+
         return null;
     }
 
