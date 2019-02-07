@@ -7,6 +7,7 @@ import { memberSchema } from './schemas/member.schema';
 import { accessTokenSchema } from './schemas/access-token.schema';
 
 import { AppEnvironment } from './app.environment';
+import { PageNavigationService } from 'services/page-navigation.service';
 
 @Module({
     imports: [
@@ -20,7 +21,8 @@ import { AppEnvironment } from './app.environment';
         AggController
     ],
     providers: [
-        AggService
+        AggService,
+        PageNavigationService
     ]
 })
 export class AppModule { }
