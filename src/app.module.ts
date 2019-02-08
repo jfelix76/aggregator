@@ -7,7 +7,8 @@ import { memberSchema } from './schemas/member.schema';
 import { accessTokenSchema } from './schemas/access-token.schema';
 
 import { AppEnvironment } from './app.environment';
-import { PageNavigationService } from 'services/page-navigation.service';
+import { WineComNavigationService } from 'services/winecom-navigation.service';
+import { TotalWineComNavigationService } from 'services/totalwinecom-navigation.service';
 
 @Module({
     imports: [
@@ -22,7 +23,8 @@ import { PageNavigationService } from 'services/page-navigation.service';
     ],
     providers: [
         AggService,
-        PageNavigationService
+        WineComNavigationService,
+        TotalWineComNavigationService
     ]
 })
 export class AppModule { }

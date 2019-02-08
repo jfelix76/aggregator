@@ -3,16 +3,15 @@ import * as puppeteer from 'puppeteer';
 
 const SEARCH_SELECTOR = '.searchBarForm_input';
 const TYPEAHEAD_SELECTOR = 'a.searchTypeAheadList_itemLink';
-const LISTITEM_SELECTOR = '';
 
 @Injectable()
-export class PageNavigationService {
+export class WineComNavigationService {
 
     constructor() {
         
     }
 
-    async traverseWineDotCom(browser: any, url: string, term: string) {
+    async traverse(browser: any, url: string, term: string) {
         const page = await browser.newPage();
         await page.goto(url);
         await page.waitFor(1000);
@@ -34,14 +33,14 @@ export class PageNavigationService {
         });
 
         for (let i=0; i<=results.length-1; i++) {
-            data[i] = await this.scrapeWineDotCom(page, data, i);
+            data[i] = await this.scrape(page, data, i);
         }
             
         // store data off at mongo
         console.log('final data', data);
     }
 
-    async scrapeWineDotCom(page, data, index) {
+    private async scrape(page, data, index) {
         let link = '', image = '', winemakerNotes = '', acclaim = '', winery = '', region = '', variety = '';
 
         // get search results - nth item
