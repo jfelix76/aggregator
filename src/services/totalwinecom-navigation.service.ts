@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 
-const SEARCH_SELECTOR = '.searchBarForm_input';
-const TYPEAHEAD_SELECTOR = 'a.searchTypeAheadList_itemLink';
+const SEARCH_SELECTOR = '#at_searchProducts';
+const TYPEAHEAD_SELECTOR = 'a[name="SUGGESTED_SEARCH_TERM"]';
 
 @Injectable()
 export class TotalWineComNavigationService {
@@ -15,8 +15,7 @@ export class TotalWineComNavigationService {
         const page = await browser.newPage();
         await page.goto(url);
         await page.waitFor(1000);
-        await page.select('select.state_select', 'AZ');
-        await page.waitFor(1000);
+        
         let data = [];
         await page.type(SEARCH_SELECTOR, term, { delay: 300 });
 
@@ -26,8 +25,10 @@ export class TotalWineComNavigationService {
         
         await page.goto(href);
 
+        await page.$eval('#search-productfull-tabs').click();
+
         let results = await page.evaluate(() => {
-            let items = [...document.querySelectorAll('ul.prodList > li')];
+            let items = [...document.querySelectorAll('ul.plp-list > li')];
             
             return items;
         });
@@ -45,7 +46,7 @@ export class TotalWineComNavigationService {
 
         // get search results - nth item
         try {
-            link = await page.$eval(`ul.prodList > li:nth-child(${index+1}) > .prodItem_wrap > .prodItemImage > a`, link => link.href);
+            link = await page.$eval(`ul.plp-list > li:nth-child(${index+1}) > .plp-product-content-wrapper > .plp-list-img > plp-list-product-img > a`, link => link.href);
             await page.goto(link);
         } catch (ex) { 
             console.info('Link not found'); 
@@ -62,7 +63,7 @@ export class TotalWineComNavigationService {
 
         // get winemaker notes
         try {
-            winemakerNotes = await page.$eval('.pipWineNotes_copy > div.viewMoreModule_text', notes => notes.innerText);
+            winemakerNotes = await page.$eval('div[data-ref="tab0"]', notes => notes.innerText);
         } catch (ex) {
             console.info('Winemaker notes not found.');
         }
@@ -71,7 +72,7 @@ export class TotalWineComNavigationService {
 
         // get critical acclaim
         try {
-            acclaim = await page.$eval('div.pipProfessionalReviews_review > div.pipSecContent_copy', acc => acc.innerText);
+            acclaim = await page.$eval('div[data-ref="tab1"]', acc => acc.innerText);
         } catch (ex) {
             console.info('Critical acclaim not found');
         }
@@ -80,7 +81,7 @@ export class TotalWineComNavigationService {
 
         // get winery but only the first tiem
         try {
-            winery = await page.$eval('div.pipWinery_copy > div.viewMoreModule_text', vintner => vintner.innerText);
+            winery = await page.$eval('div[data-ref="tab2"]', vintner => vintner.innerText);
         } catch (ex) {
             console.info('Winery not found.');
         }
