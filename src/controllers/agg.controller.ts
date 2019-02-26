@@ -19,7 +19,7 @@ export class AggController {
     @Get('details')
     async getWineDetails(@Query('type')type: string, @Query('term')term: string) {
         const browser = await puppeteer.launch({headless: false});
-        
+        console.info('here at controller')
         await this.aggService.onSearch(browser, term, type);
         
         return null;
