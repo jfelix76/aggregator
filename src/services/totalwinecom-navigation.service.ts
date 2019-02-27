@@ -39,34 +39,35 @@ export class TotalWineComNavigationService {
             
             return items;
         });
-
-        for (let i=0; i<=results.length-1; i++) {
+        // skip 1st child here
+        for (let i=2; i<results.length+2; i++) {
             data[i] = await this.scrape(page, data, i);
         }
             
         // store data off at mongo
-        // console.log('final data', data);
+        console.log('final data', data);
     }
 
     private async scrape(page, data, index) {
-        let link = '', image = '', winemakerNotes = '', acclaim = '', winery = '', region = '', variety = '';
+        let link: any, image = '', winemakerNotes = '', acclaim = '', winery = '', region = '', variety = '';
 
         // get search results - nth item
         try {
-            let ul = await page.$(`.plp-list`);
-            link = await ul.$(`li:nth-child(${index+1})`)
-            console.info('what is link now', link);
-            // await page.goto(link);
+            await page.waitFor(1000);
+            link = await page.$eval(`ul.plp-list > li:nth-child(${index}) > div > div > div > a`, a => a.href);
+            await page.waitFor(1000);
+            // console.info('**** what is el now', li);
+            await page.goto(link);
         } catch (ex) { 
             console.info('Link not found'); 
         }
 
         // get label - need to download
-        // try {
-        //     image = await page.$eval('picture > img', img => img.src);
-        // } catch (ex) {
-        //     console.info('Image not found.');
-        // }
+        try {
+            image = await page.$eval('picture > img', img => img.src);
+        } catch (ex) {
+            console.info('Image not found.');
+        }
         
         // console.log('*** image', image)
 
@@ -104,12 +105,12 @@ export class TotalWineComNavigationService {
         //     console.info('Region not found.');
         // }
         
-        // // get region
-        // try {
-        //     variety = await page.$eval('.productPageContentContainer > .productPageContent > section > div[itemprop="description"]', grape => grape.innerHTML);
-        // } catch (ex) {
-        //     console.info('Varietal not found.');
-        // }
+        // // get variety
+        try {
+            variety = await page.$eval('.detailsTabReview__2wHgUkc_', grape => grape.innerHTML);
+        } catch (ex) {
+            console.info('Varietal not found.');
+        }
         
         // console.log('******* region', region);
 

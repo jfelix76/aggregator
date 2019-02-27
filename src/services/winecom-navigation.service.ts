@@ -94,7 +94,7 @@ export class WineComNavigationService {
             console.info('Region not found.');
         }
         
-        // get region
+        // get variety
         try {
             variety = await page.$eval('.productPageContentContainer > .productPageContent > section > div[itemprop="description"]', grape => grape.innerHTML);
         } catch (ex) {
