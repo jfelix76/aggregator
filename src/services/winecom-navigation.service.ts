@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
+import { DownloadService } from './download.service';
 
 const SEARCH_SELECTOR = '.searchBarForm_input';
 const TYPEAHEAD_SELECTOR = 'a.searchTypeAheadList_itemLink';
@@ -7,15 +8,13 @@ const TYPEAHEAD_SELECTOR = 'a.searchTypeAheadList_itemLink';
 @Injectable()
 export class WineComNavigationService {
 
-    constructor() {
-        
-    }
+    constructor(private downloadService: DownloadService) {}
 
     async traverse(browser: any, url: string, term: string) {
         const page = await browser.newPage();
         await page.goto(url);
         await page.waitFor(1000);
-        await page.select('select.state_select', 'AZ');
+        await page.select('select.state_select', 'GA');
         await page.waitFor(1000);
         let data = [];
         await page.type(SEARCH_SELECTOR, term, { delay: 300 });
@@ -41,7 +40,7 @@ export class WineComNavigationService {
     }
 
     private async scrape(page, data, index) {
-        let link = '', image = '', winemakerNotes = '', acclaim = '', winery = '', region = '', variety = '';
+        let link = '', imageUrl = '', winemakerNotes = '', acclaim = '', winery = '', region = '', variety = '';
 
         // get search results - nth item
         try {
@@ -53,7 +52,9 @@ export class WineComNavigationService {
 
         // get label - need to download
         try {
-            image = await page.$eval('picture > img', img => img.src);
+            imageUrl = await page.$eval('picture > img', img => img.src);
+            await this.downloadService.getImage(page, imageUrl);
+            await page.goBack({ waitUntil: 'domcontentloaded' });
         } catch (ex) {
             console.info('Image not found.');
         }
@@ -107,7 +108,6 @@ export class WineComNavigationService {
 
         return data = {
             link,
-            image,
             winemakerNotes,
             acclaim,
             winery,

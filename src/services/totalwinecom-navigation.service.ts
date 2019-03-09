@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import { unlink } from 'fs';
+import { DownloadService } from './download.service';
 
 const SEARCH_SELECTOR = '#at_searchProducts';
 const TYPEAHEAD_SELECTOR = 'a[name="SUGGESTED_SEARCH_TERM"]';
@@ -9,9 +10,7 @@ const OF_AGE_YES_BUTTON = '#btnYes';
 @Injectable()
 export class TotalWineComNavigationService {
 
-    constructor() {
-        
-    }
+    constructor(private downloadService: DownloadService) {}
 
     async traverse(browser: any, url: string, term: string) {
         const page = await browser.newPage();
@@ -19,7 +18,8 @@ export class TotalWineComNavigationService {
         await page.goto(url);
         await page.waitFor(1000);
         
-        await page.goto(`${url}/ageGate/userResponse?_=1551147041427`);
+        // this may need to go away -- actually pressing yes on the agegate
+        await page.goto(`${url}/ageGate/userResponse?_=1551147041428`);
 
         await page.goBack();
         
@@ -29,8 +29,6 @@ export class TotalWineComNavigationService {
         let href = await page.$eval(TYPEAHEAD_SELECTOR, el => el.href);
 
         console.info('navigating to: ', href);
-        
-        // https://www.totalwine.com/search/all?text=Honig&tab=fullcatalog
 
         await page.goto(`${href}/&tab=fullcatalog`);
 
@@ -49,7 +47,7 @@ export class TotalWineComNavigationService {
     }
 
     private async scrape(page, data, index) {
-        let link: any, image = '', winemakerNotes = '', acclaim = '', winery = '', region = '', variety = '';
+        let link: any, imageUrl = '', winemakerNotes = '', acclaim = '', winery = '', region = '', variety = '';
 
         // get search results - nth item
         try {
@@ -64,64 +62,39 @@ export class TotalWineComNavigationService {
 
         // get label - need to download
         try {
-            image = await page.$eval('picture > img', img => img.src);
+            imageUrl = await page.$eval('picture > img', img => img.src);
+            await this.downloadService.getImage(page, imageUrl);
+            await page.goBack({ waitUntil: 'domcontentloaded' });
         } catch (ex) {
             console.info('Image not found.');
         }
-        
-        // console.log('*** image', image)
 
         // get winemaker notes
-        // try {
-        //     winemakerNotes = await page.$eval('div[data-ref="tab0"]', notes => notes.innerText);
-        // } catch (ex) {
-        //     console.info('Winemaker notes not found.');
-        // }
-        
-        // // console.log('**** notes', winemakerNotes)
-
-        // // get critical acclaim
-        // try {
-        //     acclaim = await page.$eval('div[data-ref="tab1"]', acc => acc.innerText);
-        // } catch (ex) {
-        //     console.info('Critical acclaim not found');
-        // }
-
-        // // console.log('***** acclaim', acclaim);
-
-        // // get winery but only the first tiem
-        // try {
-        //     winery = await page.$eval('div[data-ref="tab2"]', vintner => vintner.innerText);
-        // } catch (ex) {
-        //     console.info('Winery not found.');
-        // }
-        
-        // // console.log('****** vintner', winery);
+        try {
+            winemakerNotes = await page.$eval('.detailsTabReview__2wHgUkc_ > div', notes => notes.innerText);
+        } catch (ex) {
+            console.info('Winemaker notes not found.');
+        }
 
         // // get region
-        // try {
-        //     region = await page.$eval('.productPageContent > section > div.productPageContent_bodyTextMain', appellation => appellation.innerHTML);
-        // } catch (ex) {
-        //     console.info('Region not found.');
-        // }
+        try {
+            region = await page.$eval('.tab__3OKZPWu7 > div > div > p', appellation => appellation.innerText);
+        } catch (ex) {
+            console.info('Region not found.');
+        }
         
         // // get variety
         try {
-            variety = await page.$eval('.detailsTabReview__2wHgUkc_', grape => grape.innerHTML);
+            variety = await page.$eval('.tab__3OKZPWu7.selected__2ORWU449 > div > div', grape => grape.innerText);
         } catch (ex) {
             console.info('Varietal not found.');
         }
-        
-        // console.log('******* region', region);
 
         await page.goBack({ waitUntil: 'domcontentloaded' });
 
         return data = {
-            link,
-            image,
+            link,      
             winemakerNotes,
-            acclaim,
-            winery,
             region,
             variety
         };

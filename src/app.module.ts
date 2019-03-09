@@ -9,6 +9,7 @@ import { accessTokenSchema } from './schemas/access-token.schema';
 import { AppEnvironment } from './app.environment';
 import { WineComNavigationService } from 'services/winecom-navigation.service';
 import { TotalWineComNavigationService } from 'services/totalwinecom-navigation.service';
+import { DownloadService } from 'services/download.service';
 
 @Module({
     imports: [
@@ -24,7 +25,8 @@ import { TotalWineComNavigationService } from 'services/totalwinecom-navigation.
     providers: [
         AggService,
         WineComNavigationService,
-        TotalWineComNavigationService
+        TotalWineComNavigationService,
+        DownloadService
     ]
 })
 export class AppModule { }
