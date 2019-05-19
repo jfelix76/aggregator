@@ -14,7 +14,7 @@ export class AggService {
         private totalWineComNavigationService: TotalWineComNavigationService
     ) {}
 
-    // register
+    // search
     async onSearch(browser: any, term: string, source: string) {
         
         if (source === 'winedotcom') {
